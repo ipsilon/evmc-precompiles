@@ -44,8 +44,8 @@ pub extern "C" fn keccak256(
     output_size: usize,
 ) -> i32 {
     let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
-    let output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
-    if let Ok(result) = Keccak256::execute(&input) {
+    let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
+    if let Ok(_) = Keccak256::execute(&input, &mut output) {
         0
     } else {
         // Some error code

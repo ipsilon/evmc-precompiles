@@ -3,5 +3,5 @@ use std::error::Error;
 pub mod keccak;
 
 pub trait Precompile {
-    fn execute<T: AsRef<[u8]>>(input: T) -> Result<Vec<u8>, ()>;
+    fn execute<I: AsRef<[u8]>, O: AsMut<[u8]>>(input: I, output: O) -> Result<(), ()>;
 }
