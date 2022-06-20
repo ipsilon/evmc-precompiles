@@ -1,5 +1,6 @@
 extern crate evmc_precompiles;
 
+use evmc_precompiles::ecadd::ECAdd;
 use evmc_precompiles::keccak::Keccak256;
 use evmc_precompiles::Precompile;
 
@@ -81,6 +82,60 @@ pub extern "C" fn keccak256_execute(
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
         if let Ok(_) = Keccak256::execute(&input, &mut output) {
+            0
+        } else {
+            // Some error code
+            -1
+        }
+    });
+
+    if let Ok(result) = result {
+        result
+    } else {
+        -1 // Some error code
+    }
+}
+
+#[cfg(not(test))]
+#[no_mangle]
+pub extern "C" fn ecadd_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        if let Ok((gas_used, output_length)) = ECAdd::analyze(&input) {
+            AnalysisResult {
+                gas_used,
+                output_length,
+            }
+        } else {
+            AnalysisResult {
+                gas_used: -1,
+                output_length: 0,
+            }
+        }
+    });
+
+    if let Ok(result) = result {
+        result
+    } else {
+        AnalysisResult {
+            gas_used: -1,
+            output_length: 0,
+        }
+    }
+}
+
+#[cfg(not(test))]
+#[no_mangle]
+pub extern "C" fn ecadd_execute(
+    input_ptr: *const u8,
+    input_size: usize,
+    output_ptr: *mut u8,
+    output_size: usize,
+) -> i32 {
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
+        if let Ok(_) = ECAdd::execute(&input, &mut output) {
             0
         } else {
             // Some error code
