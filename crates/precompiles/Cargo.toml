@@ -9,3 +9,4 @@ edition = "2021"
 
 [dependencies]
 tiny-keccak = "1.4"
+ethereum-bn128 = { git = "https://github.com/ewasm/ethereum-bn128.rs", tag = "0.1.1" }

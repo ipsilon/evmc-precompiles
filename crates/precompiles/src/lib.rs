@@ -1,5 +1,6 @@
 use std::error::Error;
 
+pub mod ecadd;
 pub mod keccak;
 
 pub trait Precompile {
