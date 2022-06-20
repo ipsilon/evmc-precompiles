@@ -44,12 +44,23 @@ pub struct AnalysisResult {
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn keccak256_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
-    let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
-    if let Ok((gas_used, output_length)) = Keccak256::analyze(&input) {
-        AnalysisResult {
-            gas_used,
-            output_length,
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        if let Ok((gas_used, output_length)) = Keccak256::analyze(&input) {
+            AnalysisResult {
+                gas_used,
+                output_length,
+            }
+        } else {
+            AnalysisResult {
+                gas_used: -1,
+                output_length: 0,
+            }
         }
+    });
+
+    if let Ok(result) = result {
+        result
     } else {
         AnalysisResult {
             gas_used: -1,
@@ -66,12 +77,20 @@ pub extern "C" fn keccak256_execute(
     output_ptr: *mut u8,
     output_size: usize,
 ) -> i32 {
-    let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
-    let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
-    if let Ok(_) = Keccak256::execute(&input, &mut output) {
-        0
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
+        if let Ok(_) = Keccak256::execute(&input, &mut output) {
+            0
+        } else {
+            // Some error code
+            -1
+        }
+    });
+
+    if let Ok(result) = result {
+        result
     } else {
-        // Some error code
-        -1
+        -1 // Some error code
     }
 }
