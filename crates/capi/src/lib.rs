@@ -35,9 +35,32 @@ int32_t identity_exec(const uint8_t* input, uint32_t input_size, uint8_t* output
     [[maybe_unused]] uint32_t output_size) noexcept
 */
 
+#[repr(C)]
+pub struct AnalysisResult {
+    gas_used: i64,
+    output_length: usize,
+}
+
 #[cfg(not(test))]
 #[no_mangle]
-pub extern "C" fn keccak256(
+pub extern "C" fn keccak256_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
+    let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+    if let Ok((gas_used, output_length)) = Keccak256::analyze(&input) {
+        AnalysisResult {
+            gas_used,
+            output_length,
+        }
+    } else {
+        AnalysisResult {
+            gas_used: -1,
+            output_length: 0,
+        }
+    }
+}
+
+#[cfg(not(test))]
+#[no_mangle]
+pub extern "C" fn keccak256_execute(
     input_ptr: *const u8,
     input_size: usize,
     output_ptr: *mut u8,
