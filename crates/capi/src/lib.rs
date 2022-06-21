@@ -8,10 +8,10 @@ mod sys;
 
 use sys::*;
 
-fn error_to_c(input: Error) -> i32 {
+fn error_to_c(input: Error) -> evmc_status_code {
     match input {
-        Error::InvalidInput => evmc_status_code::INVALID_INPUT as i32,
-        Error::ShortInput => evmc_status_code::SHORT_INPUT as i32,
+        Error::InvalidInput => evmc_status_code::INVALID_INPUT,
+        Error::ShortInput => evmc_status_code::SHORT_INPUT,
         _ => panic!(),
     }
 }
@@ -62,7 +62,7 @@ pub extern "C" fn keccak256_execute(
     input_size: usize,
     output_ptr: *mut u8,
     output_size: usize,
-) -> i32 {
+) -> evmc_status_code {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
@@ -70,14 +70,14 @@ pub extern "C" fn keccak256_execute(
         if result.is_err() {
             error_to_c(result.err().unwrap())
         } else {
-            0
+            evmc_status_code::SUCCESS
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        evmc_status_code::INVALID_INPUT as i32
+        evmc_status_code::INVALID_INPUT
     }
 }
 
@@ -107,7 +107,7 @@ pub extern "C" fn ecadd_execute(
     input_size: usize,
     output_ptr: *mut u8,
     output_size: usize,
-) -> i32 {
+) -> evmc_status_code {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
@@ -115,13 +115,13 @@ pub extern "C" fn ecadd_execute(
         if result.is_err() {
             error_to_c(result.err().unwrap())
         } else {
-            0
+            evmc_status_code::SUCCESS
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        evmc_status_code::INVALID_INPUT as i32
+        evmc_status_code::INVALID_INPUT
     }
 }
