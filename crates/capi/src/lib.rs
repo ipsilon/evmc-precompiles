@@ -8,11 +8,29 @@ mod sys;
 
 use sys::*;
 
-fn error_to_c(input: Error) -> evmc_status_code {
-    match input {
-        Error::InvalidInput => evmc_status_code::INVALID_INPUT,
-        Error::ShortInput => evmc_status_code::SHORT_INPUT,
-        _ => panic!(),
+impl From<Error> for evmc_execution_status {
+    fn from(input: Error) -> evmc_execution_status {
+        match input {
+            Error::InvalidInput => evmc_execution_status {
+                code: evmc_status_code::INVALID_INPUT,
+            },
+            Error::ShortInput => evmc_execution_status {
+                code: evmc_status_code::SHORT_INPUT,
+            },
+            _ => panic!(),
+        }
+    }
+}
+
+impl evmc_execution_status {
+    fn success(len: usize) -> Self {
+        Self { output_length: len }
+    }
+
+    fn failure() -> Self {
+        Self {
+            code: evmc_status_code::INVALID_INPUT,
+        }
     }
 }
 
@@ -62,22 +80,22 @@ pub extern "C" fn keccak256_execute(
     input_size: usize,
     output_ptr: *mut u8,
     output_size: usize,
-) -> evmc_status_code {
+) -> evmc_execution_status {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
         let result = Keccak256::execute(&input, &mut output);
         if result.is_err() {
-            error_to_c(result.err().unwrap())
+            result.err().unwrap().into()
         } else {
-            evmc_status_code::SUCCESS
+            evmc_execution_status::success(output_size)
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        evmc_status_code::INVALID_INPUT
+        evmc_execution_status::failure()
     }
 }
 
@@ -107,21 +125,21 @@ pub extern "C" fn ecadd_execute(
     input_size: usize,
     output_ptr: *mut u8,
     output_size: usize,
-) -> evmc_status_code {
+) -> evmc_execution_status {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
         let result = ECAdd::execute(&input, &mut output);
         if result.is_err() {
-            error_to_c(result.err().unwrap())
+            result.err().unwrap().into()
         } else {
-            evmc_status_code::SUCCESS
+            evmc_execution_status::success(output_size)
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        evmc_status_code::INVALID_INPUT
+        evmc_execution_status::failure()
     }
 }
