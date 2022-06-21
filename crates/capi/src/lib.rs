@@ -2,7 +2,7 @@ extern crate evmc_precompiles;
 
 use evmc_precompiles::ecadd::ECAdd;
 use evmc_precompiles::keccak::Keccak256;
-use evmc_precompiles::Precompile;
+use evmc_precompiles::{Error, Precompile};
 
 /*
 fn allocate_output_data(output: Option<&Vec<u8>>) -> (*const u8, usize) {
@@ -35,6 +35,17 @@ unsafe fn deallocate_output_data(ptr: *const u8, size: usize) {
 int32_t identity_exec(const uint8_t* input, uint32_t input_size, uint8_t* output,
     [[maybe_unused]] uint32_t output_size) noexcept
 */
+
+const ERROR_INVALID_INPUT: i32 = -1;
+const ERROR_SHORT_INPUT: i32 = -2;
+
+fn error_to_c(input: Error) -> i32 {
+    match input {
+        Error::InvalidInput => ERROR_INVALID_INPUT,
+        Error::ShortInput => ERROR_SHORT_INPUT,
+        _ => panic!(),
+    }
+}
 
 #[repr(C)]
 pub struct AnalysisResult {
@@ -90,18 +101,18 @@ pub extern "C" fn keccak256_execute(
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
-        if let Ok(_) = Keccak256::execute(&input, &mut output) {
-            0
+        let result = Keccak256::execute(&input, &mut output);
+        if result.is_err() {
+            error_to_c(result.err().unwrap())
         } else {
-            // Some error code
-            -1
+            0
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        -1 // Some error code
+        ERROR_INVALID_INPUT
     }
 }
 
@@ -135,17 +146,17 @@ pub extern "C" fn ecadd_execute(
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
-        if let Ok(_) = ECAdd::execute(&input, &mut output) {
-            0
+        let result = ECAdd::execute(&input, &mut output);
+        if result.is_err() {
+            error_to_c(result.err().unwrap())
         } else {
-            // Some error code
-            -1
+            0
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        -1 // Some error code
+        ERROR_INVALID_INPUT
     }
 }
