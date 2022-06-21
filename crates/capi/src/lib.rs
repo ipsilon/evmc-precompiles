@@ -91,11 +91,9 @@ pub extern "C" fn keccak256_execute(
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
-        let result = Keccak256::execute(&input, &mut output);
-        if result.is_err() {
-            result.err().unwrap().into()
-        } else {
-            evmc_execution_status::success(result.unwrap())
+        match Keccak256::execute(&input, &mut output) {
+            Ok(result) => evmc_execution_status::success(result),
+            Err(err) => err.into(),
         }
     });
 
@@ -136,11 +134,9 @@ pub extern "C" fn ecadd_execute(
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
-        let result = ECAdd::execute(&input, &mut output);
-        if result.is_err() {
-            result.err().unwrap().into()
-        } else {
-            evmc_execution_status::success(result.unwrap())
+        match ECAdd::execute(&input, &mut output) {
+            Ok(result) => evmc_execution_status::success(result),
+            Err(err) => err.into(),
         }
     });
 
