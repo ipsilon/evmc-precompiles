@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 enum evmc_status_code {
     SUCCESS = 0,
@@ -8,8 +9,8 @@ enum evmc_status_code {
 
 struct evmc_analysis_result {
     int64_t gas_used;
-    uint32_t output_length;
+    size_t output_length;
 };
 
-struct evmc_analysis_result sample_analyze(const uint8_t* input_ptr, uint32_t input_size);
-enum evmc_status_code sample_execute(const uint8_t* input_ptr, uint32_t input_size, uint8_t* output_ptr, uint32_t output_size);
+struct evmc_analysis_result sample_analyze(const uint8_t* input_ptr, size_t input_size);
+enum evmc_status_code sample_execute(const uint8_t* input_ptr, size_t input_size, uint8_t* output_ptr, size_t output_size);

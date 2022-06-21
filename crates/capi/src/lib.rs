@@ -31,7 +31,7 @@ impl From<evmc_precompiles::AnalysisResult> for AnalysisResult {
     fn from(input: evmc_precompiles::AnalysisResult) -> AnalysisResult {
         AnalysisResult {
             gas_used: input.gas_used,
-            output_length: input.output_length as u32,
+            output_length: input.output_length,
         }
     }
 }
