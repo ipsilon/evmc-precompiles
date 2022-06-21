@@ -8,22 +8,6 @@ mod sys;
 
 use sys::*;
 
-impl From<Error> for evmc_execution_status {
-    fn from(input: Error) -> Self {
-        match input {
-            Error::InvalidInput => evmc_execution_status {
-                code: evmc_status_code::INVALID_INPUT,
-                output_length: 0,
-            },
-            Error::ShortInput => evmc_execution_status {
-                code: evmc_status_code::SHORT_INPUT,
-                output_length: 0,
-            },
-            _ => panic!(),
-        }
-    }
-}
-
 impl evmc_execution_status {
     fn success(len: usize) -> Self {
         Self {
@@ -36,6 +20,22 @@ impl evmc_execution_status {
         Self {
             code: evmc_status_code::INVALID_INPUT,
             output_length: 0,
+        }
+    }
+}
+
+impl From<Error> for evmc_execution_status {
+    fn from(input: Error) -> Self {
+        match input {
+            Error::InvalidInput => evmc_execution_status {
+                code: evmc_status_code::INVALID_INPUT,
+                output_length: 0,
+            },
+            Error::ShortInput => evmc_execution_status {
+                code: evmc_status_code::SHORT_INPUT,
+                output_length: 0,
+            },
+            _ => panic!(),
         }
     }
 }
