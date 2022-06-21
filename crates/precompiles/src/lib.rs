@@ -1,4 +1,5 @@
 pub mod ecadd;
+pub mod ecpairing;
 pub mod keccak;
 
 #[derive(Eq, PartialEq, Debug, Clone)]

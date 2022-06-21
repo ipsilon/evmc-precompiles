@@ -1,6 +1,7 @@
 extern crate evmc_precompiles;
 
 use evmc_precompiles::ecadd::ECAdd;
+use evmc_precompiles::ecpairing::ECPairing;
 use evmc_precompiles::keccak::Keccak256;
 use evmc_precompiles::{AnalysisResult, Error, Precompile};
 
@@ -135,6 +136,49 @@ pub extern "C" fn ecadd_execute(
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
         match ECAdd::execute(&input, &mut output) {
+            Ok(result) => evmc_execution_status::success(result),
+            Err(err) => err.into(),
+        }
+    });
+
+    if let Ok(result) = result {
+        result
+    } else {
+        evmc_execution_status::failure()
+    }
+}
+
+#[cfg(not(test))]
+#[no_mangle]
+pub extern "C" fn ecpairing_analyze(input_ptr: *const u8, input_size: usize) -> evmc_analysis_result {
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        if let Ok(result) = ECPairing::analyze(&input) {
+            result.into()
+        } else {
+            evmc_analysis_result::failure()
+        }
+    });
+
+    if let Ok(result) = result {
+        result
+    } else {
+        evmc_analysis_result::failure()
+    }
+}
+
+#[cfg(not(test))]
+#[no_mangle]
+pub extern "C" fn ecpairing_execute(
+    input_ptr: *const u8,
+    input_size: usize,
+    output_ptr: *mut u8,
+    output_size: usize,
+) -> evmc_execution_status {
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
+        match ECPairing::execute(&input, &mut output) {
             Ok(result) => evmc_execution_status::success(result),
             Err(err) => err.into(),
         }
