@@ -8,20 +8,36 @@ mod sys;
 
 use sys::*;
 
-fn error_to_c(input: Error) -> evmc_execution_status {
-    match input {
-        Error::InvalidInput => evmc_status_code::INVALID_INPUT as isize, // FIXME
-        Error::ShortInput => evmc_status_code::SHORT_INPUT as isize,     // FIXME
-        _ => panic!(),
+impl From<Error> for evmc_execution_status {
+    fn from(input: Error) -> Self {
+        match input {
+            Error::InvalidInput => evmc_execution_status {
+                code: evmc_status_code::INVALID_INPUT,
+                output_length: 0,
+            },
+            Error::ShortInput => evmc_execution_status {
+                code: evmc_status_code::SHORT_INPUT,
+                output_length: 0,
+            },
+            _ => panic!(),
+        }
     }
 }
 
-fn success_to_c(len: usize) -> evmc_execution_status {
-    len as isize // FIXME
-}
+impl evmc_execution_status {
+    fn success(len: usize) -> Self {
+        Self {
+            code: evmc_status_code::SUCCESS,
+            output_length: len,
+        }
+    }
 
-fn failure_to_c() -> evmc_execution_status {
-    evmc_status_code::INVALID_INPUT as isize // FIXME
+    fn failure() -> Self {
+        Self {
+            code: evmc_status_code::INVALID_INPUT,
+            output_length: 0,
+        }
+    }
 }
 
 impl evmc_analysis_result {
@@ -77,16 +93,16 @@ pub extern "C" fn keccak256_execute(
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
         let result = Keccak256::execute(&input, &mut output);
         if result.is_err() {
-            error_to_c(result.err().unwrap())
+            result.err().unwrap().into()
         } else {
-            success_to_c(result.unwrap())
+            evmc_execution_status::success(result.unwrap())
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        failure_to_c()
+        evmc_execution_status::failure()
     }
 }
 
@@ -122,15 +138,15 @@ pub extern "C" fn ecadd_execute(
         let mut output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
         let result = ECAdd::execute(&input, &mut output);
         if result.is_err() {
-            error_to_c(result.err().unwrap())
+            result.err().unwrap().into()
         } else {
-            success_to_c(result.unwrap())
+            evmc_execution_status::success(result.unwrap())
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        failure_to_c()
+        evmc_execution_status::failure()
     }
 }
