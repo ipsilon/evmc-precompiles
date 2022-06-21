@@ -4,6 +4,10 @@ use evmc_precompiles::ecadd::ECAdd;
 use evmc_precompiles::keccak::Keccak256;
 use evmc_precompiles::{Error, Precompile};
 
+mod sys;
+
+use sys::*;
+
 /*
 fn allocate_output_data(output: Option<&Vec<u8>>) -> (*const u8, usize) {
     if let Some(buf) = output {
@@ -36,22 +40,15 @@ int32_t identity_exec(const uint8_t* input, uint32_t input_size, uint8_t* output
     [[maybe_unused]] uint32_t output_size) noexcept
 */
 
-const ERROR_INVALID_INPUT: i32 = -1;
-const ERROR_SHORT_INPUT: i32 = -2;
-
 fn error_to_c(input: Error) -> i32 {
     match input {
-        Error::InvalidInput => ERROR_INVALID_INPUT,
-        Error::ShortInput => ERROR_SHORT_INPUT,
+        Error::InvalidInput => evmc_status_code::INVALID_INPUT as i32,
+        Error::ShortInput => evmc_status_code::SHORT_INPUT as i32,
         _ => panic!(),
     }
 }
 
-#[repr(C)]
-pub struct AnalysisResult {
-    gas_used: i64,
-    output_length: usize,
-}
+type AnalysisResult = evmc_analysis_result;
 
 impl AnalysisResult {
     fn failure() -> Self {
@@ -66,7 +63,7 @@ impl From<evmc_precompiles::AnalysisResult> for AnalysisResult {
     fn from(input: evmc_precompiles::AnalysisResult) -> AnalysisResult {
         AnalysisResult {
             gas_used: input.gas_used,
-            output_length: input.output_length,
+            output_length: input.output_length as u32,
         }
     }
 }
@@ -112,7 +109,7 @@ pub extern "C" fn keccak256_execute(
     if let Ok(result) = result {
         result
     } else {
-        ERROR_INVALID_INPUT
+        evmc_status_code::INVALID_INPUT as i32
     }
 }
 
@@ -157,6 +154,6 @@ pub extern "C" fn ecadd_execute(
     if let Ok(result) = result {
         result
     } else {
-        ERROR_INVALID_INPUT
+        evmc_status_code::INVALID_INPUT as i32
     }
 }
