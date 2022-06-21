@@ -13,9 +13,11 @@ impl From<Error> for evmc_execution_status {
         match input {
             Error::InvalidInput => evmc_execution_status {
                 code: evmc_status_code::INVALID_INPUT,
+                output_length: 0,
             },
             Error::ShortInput => evmc_execution_status {
                 code: evmc_status_code::SHORT_INPUT,
+                output_length: 0,
             },
             _ => panic!(),
         }
@@ -24,12 +26,16 @@ impl From<Error> for evmc_execution_status {
 
 impl evmc_execution_status {
     fn success(len: usize) -> Self {
-        Self { output_length: len }
+        Self {
+            code: evmc_status_code::SUCCESS,
+            output_length: len,
+        }
     }
 
     fn failure() -> Self {
         Self {
             code: evmc_status_code::INVALID_INPUT,
+            output_length: 0,
         }
     }
 }
