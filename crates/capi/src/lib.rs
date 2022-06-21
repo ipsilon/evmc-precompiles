@@ -2,7 +2,7 @@ extern crate evmc_precompiles;
 
 use evmc_precompiles::ecadd::ECAdd;
 use evmc_precompiles::keccak::Keccak256;
-use evmc_precompiles::{Error, Precompile};
+use evmc_precompiles::{AnalysisResult, Error, Precompile};
 
 mod sys;
 
@@ -24,9 +24,7 @@ fn failure_to_c() -> evmc_execution_status {
     evmc_status_code::INVALID_INPUT as isize // FIXME
 }
 
-type AnalysisResult = evmc_analysis_result;
-
-impl AnalysisResult {
+impl evmc_analysis_result {
     fn failure() -> Self {
         Self {
             gas_used: -1,
@@ -35,9 +33,9 @@ impl AnalysisResult {
     }
 }
 
-impl From<evmc_precompiles::AnalysisResult> for AnalysisResult {
-    fn from(input: evmc_precompiles::AnalysisResult) -> AnalysisResult {
-        AnalysisResult {
+impl From<AnalysisResult> for evmc_analysis_result {
+    fn from(input: AnalysisResult) -> Self {
+        Self {
             gas_used: input.gas_used,
             output_length: input.output_length,
         }
@@ -46,20 +44,23 @@ impl From<evmc_precompiles::AnalysisResult> for AnalysisResult {
 
 #[cfg(not(test))]
 #[no_mangle]
-pub extern "C" fn keccak256_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
+pub extern "C" fn keccak256_analyze(
+    input_ptr: *const u8,
+    input_size: usize,
+) -> evmc_analysis_result {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         if let Ok(result) = Keccak256::analyze(&input) {
             result.into()
         } else {
-            AnalysisResult::failure()
+            evmc_analysis_result::failure()
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        AnalysisResult::failure()
+        evmc_analysis_result::failure()
     }
 }
 
@@ -91,20 +92,20 @@ pub extern "C" fn keccak256_execute(
 
 #[cfg(not(test))]
 #[no_mangle]
-pub extern "C" fn ecadd_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
+pub extern "C" fn ecadd_analyze(input_ptr: *const u8, input_size: usize) -> evmc_analysis_result {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
         if let Ok(result) = ECAdd::analyze(&input) {
             result.into()
         } else {
-            AnalysisResult::failure()
+            evmc_analysis_result::failure()
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        AnalysisResult::failure()
+        evmc_analysis_result::failure()
     }
 }
 
