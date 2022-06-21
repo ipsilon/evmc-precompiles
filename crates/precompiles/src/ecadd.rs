@@ -7,11 +7,14 @@ pub struct ECAdd;
 const BASE_FEE: i64 = 500;
 
 impl Precompile for ECAdd {
-    fn analyze<I: AsRef<[u8]>>(input: I) -> Result<(i64, usize), Error> {
+    fn analyze<I: AsRef<[u8]>>(input: I) -> Result<AnalysisResult, Error> {
         if input.as_ref().len() != 64 {
             Err(Error::ShortInput)
         } else {
-            Ok((BASE_FEE, 64))
+            Ok(AnalysisResult {
+                gas_used: BASE_FEE,
+                output_length: 64,
+            })
         }
     }
 

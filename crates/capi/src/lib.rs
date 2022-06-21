@@ -42,16 +42,22 @@ pub struct AnalysisResult {
     output_length: usize,
 }
 
+impl From<evmc_precompiles::AnalysisResult> for AnalysisResult {
+    fn from(input: evmc_precompiles::AnalysisResult) -> AnalysisResult {
+        AnalysisResult {
+            gas_used: input.gas_used,
+            output_length: input.output_length,
+        }
+    }
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn keccak256_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
-        if let Ok((gas_used, output_length)) = Keccak256::analyze(&input) {
-            AnalysisResult {
-                gas_used,
-                output_length,
-            }
+        if let Ok(result) = Keccak256::analyze(&input) {
+            result.into()
         } else {
             AnalysisResult {
                 gas_used: -1,
@@ -101,11 +107,8 @@ pub extern "C" fn keccak256_execute(
 pub extern "C" fn ecadd_analyze(input_ptr: *const u8, input_size: usize) -> AnalysisResult {
     let result = ::std::panic::catch_unwind(|| {
         let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
-        if let Ok((gas_used, output_length)) = ECAdd::analyze(&input) {
-            AnalysisResult {
-                gas_used,
-                output_length,
-            }
+        if let Ok(result) = ECAdd::analyze(&input) {
+            result.into()
         } else {
             AnalysisResult {
                 gas_used: -1,
