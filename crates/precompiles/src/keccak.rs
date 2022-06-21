@@ -17,8 +17,8 @@ impl Precompile for Keccak256 {
         }) // FIXME
     }
 
-    fn execute<I: AsRef<[u8]>, O: AsMut<[u8]>>(input: I, mut output: O) -> Result<(), Error> {
+    fn execute<I: AsRef<[u8]>, O: AsMut<[u8]>>(input: I, mut output: O) -> Result<usize, Error> {
         tiny_keccak::Keccak::keccak256(input.as_ref(), output.as_mut());
-        Ok(())
+        Ok(output.as_mut().len())
     }
 }

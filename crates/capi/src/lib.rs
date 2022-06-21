@@ -79,7 +79,7 @@ pub extern "C" fn keccak256_execute(
         if result.is_err() {
             error_to_c(result.err().unwrap())
         } else {
-            success_to_c(output_size)
+            success_to_c(result.unwrap())
         }
     });
 
@@ -124,7 +124,7 @@ pub extern "C" fn ecadd_execute(
         if result.is_err() {
             error_to_c(result.err().unwrap())
         } else {
-            success_to_c(output_size)
+            success_to_c(result.unwrap())
         }
     });
 

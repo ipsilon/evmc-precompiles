@@ -18,13 +18,13 @@ impl Precompile for ECAdd {
         }
     }
 
-    fn execute<I: AsRef<[u8]>, O: AsMut<[u8]>>(input: I, mut output: O) -> Result<(), Error> {
+    fn execute<I: AsRef<[u8]>, O: AsMut<[u8]>>(input: I, mut output: O) -> Result<usize, Error> {
         // FIXME: remove the match and use the output slice directly
         let mut tmp = [0u8; 64];
         match ethereum_bn128::bn128_add(input.as_ref(), &mut tmp) {
             Ok(_) => {
                 output.as_mut().copy_from_slice(&tmp);
-                Ok(())
+                Ok(64)
             }
             Err(_) => Err(Error::InvalidInput),
         }
