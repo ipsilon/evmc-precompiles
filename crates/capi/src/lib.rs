@@ -42,6 +42,15 @@ pub struct AnalysisResult {
     output_length: usize,
 }
 
+impl AnalysisResult {
+    fn failure() -> Self {
+        Self {
+            gas_used: -1,
+            output_length: 0,
+        }
+    }
+}
+
 impl From<evmc_precompiles::AnalysisResult> for AnalysisResult {
     fn from(input: evmc_precompiles::AnalysisResult) -> AnalysisResult {
         AnalysisResult {
@@ -59,20 +68,14 @@ pub extern "C" fn keccak256_analyze(input_ptr: *const u8, input_size: usize) -> 
         if let Ok(result) = Keccak256::analyze(&input) {
             result.into()
         } else {
-            AnalysisResult {
-                gas_used: -1,
-                output_length: 0,
-            }
+            AnalysisResult::failure()
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        AnalysisResult {
-            gas_used: -1,
-            output_length: 0,
-        }
+        AnalysisResult::failure()
     }
 }
 
@@ -110,20 +113,14 @@ pub extern "C" fn ecadd_analyze(input_ptr: *const u8, input_size: usize) -> Anal
         if let Ok(result) = ECAdd::analyze(&input) {
             result.into()
         } else {
-            AnalysisResult {
-                gas_used: -1,
-                output_length: 0,
-            }
+            AnalysisResult::failure()
         }
     });
 
     if let Ok(result) = result {
         result
     } else {
-        AnalysisResult {
-            gas_used: -1,
-            output_length: 0,
-        }
+        AnalysisResult::failure()
     }
 }
 
