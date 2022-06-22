@@ -36,7 +36,6 @@ impl From<Error> for evmc_execution_status {
                 code: evmc_status_code::SHORT_INPUT,
                 output_length: 0,
             },
-            _ => panic!(),
         }
     }
 }
