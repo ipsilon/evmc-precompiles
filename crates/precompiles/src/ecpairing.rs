@@ -22,16 +22,12 @@ impl Precompile for ECPairing {
     }
 
     fn execute<I: AsRef<[u8]>, O: AsMut<[u8]>>(input: I, mut output: O) -> Result<usize, Error> {
-        if output.as_mut().len() % 192 != 0 {
-            return Err(Error::ShortInput);
-        }
-
         // FIXME: remove the match and use the output slice directly
         let mut tmp = [0u8; 32];
         match ethereum_bn128::bn128_pairing(input.as_ref(), &mut tmp) {
             Ok(_) => {
                 output.as_mut().copy_from_slice(&tmp);
-                Ok(64)
+                Ok(32)
             }
             Err(_) => Err(Error::InvalidInput),
         }
