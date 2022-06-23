@@ -3,3 +3,6 @@ members = [
     "crates/capi",
     "crates/precompiles"
 ]
+
+[profile.release]
+panic = "abort"
