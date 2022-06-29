@@ -189,3 +189,31 @@ pub extern "C" fn ecpairing_execute(
         evmc_execution_status::failure()
     }
 }
+
+#[cfg(not(test))]
+#[no_mangle]
+pub extern "C" fn ripemd160_execute(
+    input_ptr: *const u8,
+    input_size: usize,
+    output_ptr: *mut u8,
+    output_size: usize,
+) -> evmc_execution_status {
+    use ripemd::{Ripemd160, Digest};
+
+    let result = ::std::panic::catch_unwind(|| {
+        let input = unsafe { std::slice::from_raw_parts(input_ptr, input_size) };
+        let output = unsafe { std::slice::from_raw_parts_mut(output_ptr, output_size) };
+
+        let result = Ripemd160::digest(input);
+        for i in &mut output[0..12] { *i = 0 }
+        output[12..32].copy_from_slice(&result);
+
+        evmc_execution_status::success(32)
+    });
+
+    if let Ok(result) = result {
+        result
+    } else {
+        evmc_execution_status::failure()
+    }
+}
